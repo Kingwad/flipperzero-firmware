@@ -1,7 +1,7 @@
 #include "first_plugin.h"
 //#include <stdlib.h>
 
-FirstPlugin::FirstPlugin() 
+FirstPlugin::FirstPlugin()
 	: m_initialized(false),
 	  m_eventQueue(nullptr),
 	  m_stateMutex(),
@@ -82,6 +82,13 @@ void FirstPlugin::Cleanup() {
 	m_viewPort = nullptr;
 	osMessageQueueDelete(m_eventQueue);
 	m_eventQueue = nullptr;
+	PluginState* pluginState = static_cast<PluginState*>(acquire_mutex_block(&m_stateMutex));
+	release_mutex(&m_stateMutex, pluginState);
+	delete_mutex(&m_stateMutex);
+	if (pluginState) {
+		delete pluginState;
+		pluginState = nullptr;
+	}
 }
 
 void FirstPlugin::RenderCallback(Canvas* _canvas, void* _context) {
