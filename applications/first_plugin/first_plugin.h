@@ -6,6 +6,7 @@
 class FirstPlugin {
 public:
 	FirstPlugin();
+	~FirstPlugin();
 	int32_t Run(void* _args);
 
 private:
@@ -20,15 +21,12 @@ private:
 	};
 
 	struct PluginState {
-		int x = 50;
+		int x = 60;
 		int y = 30;
 	};
 
-	static void RenderCallback(Canvas* _canvas, void* _context);
-	static void InputCallback(InputEvent* _event, void* _context);
-
-	bool Init();
-	void Cleanup();
+	static void RenderCallback(Canvas* _canvas, void* _stateMutex);
+	static void InputCallback(InputEvent* _event, void* _eventQueue);
 
 	bool m_initialized;
 	osMessageQueueId_t m_eventQueue;
