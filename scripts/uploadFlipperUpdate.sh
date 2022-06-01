@@ -184,15 +184,19 @@ fi
 
 flipperupdatedir=/ext/update/$(basename ${updatedir})
 waitforprompt
+if [[ 0 -ne $? ]]; then
+	log "flipper not ready"
+	cleanupserial
+fi
 echo -ne "storage mkdir ${flipperupdatedir}\r" > ${device}
 waitforprompt
 if [[ 0 -ne $? ]]; then
-	log "error writing to flipper"
-	exit 1
+	log "error creating directory on flipper"
+	cleanupserial
 fi
-sleep 1
 
 for file in ${updatedir}/*; do
 	uploadfile "${file}" "${flipperupdatedir}"
 done
+log "upload to flipper completed successfully"
 cleanupserial
