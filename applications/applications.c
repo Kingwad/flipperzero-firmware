@@ -240,6 +240,14 @@ const FlipperApplication FLIPPER_APPS[] = {
      .flags = FlipperApplicationFlagDefault},
 #endif
 
+#ifdef APP_SPECTRUM_ANALYZER
+    {.app = spectrum_analyzer_app,
+     .name = "Spectrum Analyzer",
+     .stack_size = 1024,
+     .icon = &A_SpectrumAnalyzer_14,
+     .flags = FlipperApplicationFlagDefault},
+#endif
+
 #ifdef APP_GPIO
     {.app = gpio_app,
      .name = "GPIO",
@@ -269,6 +277,14 @@ const FlipperApplication FLIPPER_APPS[] = {
      .name = "U2F",
      .stack_size = 2048,
      .icon = &A_U2F_14,
+     .flags = FlipperApplicationFlagDefault},
+#endif
+
+#ifdef APP_SNAKE_GAME
+    {.app = snake_game_app,
+     .name = "Snake",
+     .stack_size = 1024,
+     .icon = &A_Snake_14,
      .flags = FlipperApplicationFlagDefault},
 #endif
 
@@ -345,25 +361,9 @@ const FlipperApplication FLIPPER_PLUGINS[] = {
      .flags = FlipperApplicationFlagDefault},
 #endif
 
-#ifdef APP_SNAKE_GAME
-    {.app = snake_game_app,
-     .name = "Snake Game",
-     .stack_size = 1024,
-     .icon = &A_Plugins_14,
-     .flags = FlipperApplicationFlagDefault},
-#endif
-
 #ifdef FIRST_PLUGIN
     {.app = first_plugin_app,
      .name = "First Plugin",
-     .stack_size = 1024,
-     .icon = &A_Plugins_14,
-     .flags = FlipperApplicationFlagDefault},
-#endif
-
-#ifdef APP_SPECTRUM_ANALYZER
-    {.app = spectrum_analyzer_app,
-     .name = "Spectrum Analyzer",
      .stack_size = 1024,
      .icon = &A_Plugins_14,
      .flags = FlipperApplicationFlagDefault},
@@ -372,7 +372,7 @@ const FlipperApplication FLIPPER_PLUGINS[] = {
 
 const size_t FLIPPER_PLUGINS_COUNT = COUNT_OF(FLIPPER_PLUGINS);
 
-// Plugin menu
+// Debug menu
 const FlipperApplication FLIPPER_DEBUG_APPS[] = {
 #ifdef APP_BLINK
     {.app = blink_test_app,
