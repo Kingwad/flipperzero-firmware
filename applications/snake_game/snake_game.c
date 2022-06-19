@@ -38,6 +38,12 @@ typedef enum {
     DirectionLeft,
 } Direction;
 
+typedef enum {
+    SpeedSlow,
+    SpeedNormal,
+    SpeedFast,
+} Speed;
+
 #define MAX_SNAKE_LEN 253
 
 typedef struct {
@@ -46,6 +52,8 @@ typedef struct {
     Direction currentMovement;
     Direction nextMovement; // if backward of currentMovement, ignore
     Point fruit;
+    Speed speed;
+    uint8_t speedTick;
     GameState state;
 } SnakeState;
 
@@ -61,20 +69,24 @@ typedef struct {
 
 const NotificationSequence deadAlert = {
     &message_note_g4,
+    &message_red_255,
     &message_delay_50,
     &message_delay_10,
     &message_delay_10,
     &message_sound_off,
-    NULL
+    &message_red_0,
+    NULL,
 };
 
 const NotificationSequence eatFruitAlert = {
     &message_vibro_on,
+    &message_green_255,
     &message_delay_50,
     &message_delay_10,
     &message_delay_10,
     &message_vibro_off,
-    NULL
+    &message_green_0,
+    NULL,
 };
 
 static void snake_game_render_callback(Canvas* const canvas, void* ctx) {
@@ -146,6 +158,10 @@ static void snake_game_init_game(SnakeState* const snake_state) {
     snake_state->currentMovement = DirectionRight;
 
     snake_state->nextMovement = DirectionRight;
+
+    snake_state->speed = SpeedSlow;
+
+    snake_state->speedTick = 0;
 
     Point f = {18, 6};
     snake_state->fruit = f;
@@ -288,6 +304,15 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
         return;
     }
 
+    snake_state->speedTick += 1;
+    snake_state->speedTick %= 4;
+    if(snake_state->speed == SpeedSlow && snake_state->speedTick != 0) {
+        return;
+    }
+    if(snake_state->speed == SpeedNormal && snake_state->speedTick & 1) {
+        return;
+    }
+
     bool can_turn = (snake_state->points[0].x % 2 == 0) && (snake_state->points[0].y % 2 == 0);
     if(can_turn) {
         snake_state->currentMovement = snake_game_get_turn_snake(snake_state);
@@ -299,6 +324,8 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
     if(crush) {
         if(snake_state->state == GameStateLife) {
             snake_state->state = GameStateLastChance;
+            snake_state->speed = SpeedSlow;
+            snake_state->speedTick = 0;
             return;
         } else if(snake_state->state == GameStateLastChance) {
             snake_state->state = GameStateGameOver;
@@ -325,6 +352,13 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
     bool eatFruit = (next_step.x == snake_state->fruit.x) && (next_step.y == snake_state->fruit.y);
     if(eatFruit) {
         snake_state->len++;
+        snake_state->speed = SpeedSlow;
+        if(snake_state->len >= 17) {
+            snake_state->speed = SpeedNormal;
+        }
+        if(snake_state->len >= 57) {
+            snake_state->speed = SpeedFast;
+        }
         if(snake_state->len >= MAX_SNAKE_LEN) {
             snake_state->state = GameStateGameOver;
             return;
@@ -365,7 +399,7 @@ int32_t snake_game_app(void* p) {
 
     osTimerId_t timer =
         osTimerNew(snake_game_update_timer_callback, osTimerPeriodic, event_queue, NULL);
-    osTimerStart(timer, osKernelGetTickFreq() / 8);
+    osTimerStart(timer, osKernelGetTickFreq() / 16);
 
     // Open GUI and register view_port
     Gui* gui = furi_record_open("gui");
