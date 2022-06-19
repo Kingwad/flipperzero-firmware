@@ -1,6 +1,8 @@
 #include <furi.h>
 #include <gui/gui.h>
 #include <input/input.h>
+#include <notification/notification.h>
+#include <notification/notification_messages.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -56,6 +58,24 @@ typedef struct {
     EventType type;
     InputEvent input;
 } SnakeEvent;
+
+const NotificationSequence deadAlert = {
+    &message_note_g4,
+    &message_delay_50,
+    &message_delay_10,
+    &message_delay_10,
+    &message_sound_off,
+    NULL
+};
+
+const NotificationSequence eatFruitAlert = {
+    &message_vibro_on,
+    &message_delay_50,
+    &message_delay_10,
+    &message_delay_10,
+    &message_vibro_off,
+    NULL
+};
 
 static void snake_game_render_callback(Canvas* const canvas, void* ctx) {
     const SnakeState* snake_state = acquire_mutex((ValueMutex*)ctx, 25);
@@ -282,6 +302,9 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
             return;
         } else if(snake_state->state == GameStateLastChance) {
             snake_state->state = GameStateGameOver;
+            NotificationApp* notification = furi_record_open("notification");
+            notification_message(notification, &deadAlert);
+            furi_record_close("notification");
             return;
         }
     } else {
@@ -293,6 +316,9 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
     crush = snake_game_collision_with_tail(snake_state, next_step);
     if(crush) {
         snake_state->state = GameStateGameOver;
+        NotificationApp* notification = furi_record_open("notification");
+        notification_message(notification, &deadAlert);
+        furi_record_close("notification");
         return;
     }
 
@@ -302,6 +328,11 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
         if(snake_state->len >= MAX_SNAKE_LEN) {
             snake_state->state = GameStateGameOver;
             return;
+        }
+        else {
+            NotificationApp* notification = furi_record_open("notification");
+            notification_message(notification, &eatFruitAlert);
+            furi_record_close("notification");
         }
     }
 
@@ -334,7 +365,7 @@ int32_t snake_game_app(void* p) {
 
     osTimerId_t timer =
         osTimerNew(snake_game_update_timer_callback, osTimerPeriodic, event_queue, NULL);
-    osTimerStart(timer, osKernelGetTickFreq() / 4);
+    osTimerStart(timer, osKernelGetTickFreq() / 8);
 
     // Open GUI and register view_port
     Gui* gui = furi_record_open("gui");
