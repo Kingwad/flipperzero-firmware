@@ -42,6 +42,7 @@ typedef enum {
     SpeedSlow,
     SpeedNormal,
     SpeedFast,
+    SpeedPause,
 } Speed;
 
 #define MAX_SNAKE_LEN 253
@@ -306,6 +307,9 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
 
     snake_state->speedTick += 1;
     snake_state->speedTick %= 4;
+    if(snake_state->speed == SpeedPause) {
+        return;
+    }
     if(snake_state->speed == SpeedSlow && snake_state->speedTick != 0) {
         return;
     }
@@ -431,6 +435,12 @@ int32_t snake_game_app(void* p) {
                     case InputKeyOk:
                         if(snake_state->state == GameStateGameOver) {
                             snake_game_init_game(snake_state);
+                        }
+                        else if(snake_state->speed == SpeedPause) {
+                            snake_state->speed = SpeedSlow;
+                        }
+                        else {
+                            snake_state->speed = SpeedPause;
                         }
                         break;
                     case InputKeyBack:
