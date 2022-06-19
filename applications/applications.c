@@ -49,8 +49,11 @@ extern int32_t file_browser_app(void* p);
 // Plugins
 extern int32_t music_player_app(void* p);
 extern int32_t snake_game_app(void* p);
+
+// Custom apps
 extern int32_t first_plugin_app(void* p);
 extern int32_t spectrum_analyzer_app(void* p);
+extern int32_t clock_app(void *p);
 
 // On system start hooks declaration
 extern void bt_on_system_start();
@@ -208,11 +211,27 @@ const size_t FLIPPER_SYSTEM_APPS_COUNT = COUNT_OF(FLIPPER_SYSTEM_APPS);
 // Main menu APP
 const FlipperApplication FLIPPER_APPS[] = {
 
+#ifdef APP_CLOCK
+    {.app = clock_app,
+     .name = "Clock",
+     .stack_size = 2048,
+     .icon = &A_Clock_14,
+     .flags = FlipperApplicationFlagDefault},
+#endif
+
 #ifdef APP_SUBGHZ
     {.app = subghz_app,
      .name = "Sub-GHz",
      .stack_size = 2048,
      .icon = &A_Sub1ghz_14,
+     .flags = FlipperApplicationFlagDefault},
+#endif
+
+#ifdef APP_SPECTRUM_ANALYZER
+    {.app = spectrum_analyzer_app,
+     .name = "Spectrum Analyzer",
+     .stack_size = 1024,
+     .icon = &A_SpectrumAnalyzer_14,
      .flags = FlipperApplicationFlagDefault},
 #endif
 
@@ -237,14 +256,6 @@ const FlipperApplication FLIPPER_APPS[] = {
      .name = "Infrared",
      .stack_size = 1024 * 3,
      .icon = &A_Infrared_14,
-     .flags = FlipperApplicationFlagDefault},
-#endif
-
-#ifdef APP_SPECTRUM_ANALYZER
-    {.app = spectrum_analyzer_app,
-     .name = "Spectrum Analyzer",
-     .stack_size = 1024,
-     .icon = &A_SpectrumAnalyzer_14,
      .flags = FlipperApplicationFlagDefault},
 #endif
 
