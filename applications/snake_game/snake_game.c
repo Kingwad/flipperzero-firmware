@@ -356,13 +356,6 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
     bool eatFruit = (next_step.x == snake_state->fruit.x) && (next_step.y == snake_state->fruit.y);
     if(eatFruit) {
         snake_state->len++;
-        snake_state->speed = SpeedSlow;
-        if(snake_state->len >= 17) {
-            snake_state->speed = SpeedNormal;
-        }
-        if(snake_state->len >= 57) {
-            snake_state->speed = SpeedFast;
-        }
         if(snake_state->len >= MAX_SNAKE_LEN) {
             snake_state->state = GameStateGameOver;
             return;
@@ -372,6 +365,14 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
             notification_message(notification, &eatFruitAlert);
             furi_record_close("notification");
         }
+    }
+
+    snake_state->speed = SpeedSlow;
+    if(snake_state->len >= 17) {
+        snake_state->speed = SpeedNormal;
+    }
+    if(snake_state->len >= 57) {
+        snake_state->speed = SpeedFast;
     }
 
     snake_game_move_snake(snake_state, next_step);
