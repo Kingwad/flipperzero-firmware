@@ -36,6 +36,7 @@ typedef enum {
     DirectionRight,
     DirectionDown,
     DirectionLeft,
+    DirectionNone,
 } Direction;
 
 typedef enum {
@@ -46,12 +47,14 @@ typedef enum {
 } Speed;
 
 #define MAX_SNAKE_LEN 253
+#define INPUT_QUEUE_SIZE 5
 
 typedef struct {
     Point points[MAX_SNAKE_LEN];
     uint16_t len;
     Direction currentMovement;
-    Direction nextMovement; // if backward of currentMovement, ignore
+    Direction nextMovements[INPUT_QUEUE_SIZE]; // if backward of currentMovement, ignore
+    uint8_t nextMovementIndex;
     Point fruit;
     Speed speed;
     uint8_t speedTick;
@@ -158,7 +161,12 @@ static void snake_game_init_game(SnakeState* const snake_state) {
 
     snake_state->currentMovement = DirectionRight;
 
-    snake_state->nextMovement = DirectionRight;
+    snake_state->nextMovements[0] = DirectionRight;
+    for(uint8_t i = 1; i < INPUT_QUEUE_SIZE; ++i) {
+        snake_state->nextMovements[i] = DirectionNone;
+    }
+
+    snake_state->nextMovementIndex = 0;
 
     snake_state->speed = SpeedSlow;
 
@@ -232,48 +240,20 @@ static bool
 }
 
 static Direction snake_game_get_turn_snake(SnakeState const* const snake_state) {
-    switch(snake_state->currentMovement) {
-    case DirectionUp:
-        switch(snake_state->nextMovement) {
-        case DirectionRight:
-            return DirectionRight;
-        case DirectionLeft:
-            return DirectionLeft;
-        default:
-            return snake_state->currentMovement;
-        }
-    case DirectionRight:
-        switch(snake_state->nextMovement) {
-        case DirectionUp:
-            return DirectionUp;
-        case DirectionDown:
-            return DirectionDown;
-        default:
-            return snake_state->currentMovement;
-        }
-    case DirectionDown:
-        switch(snake_state->nextMovement) {
-        case DirectionRight:
-            return DirectionRight;
-        case DirectionLeft:
-            return DirectionLeft;
-        default:
-            return snake_state->currentMovement;
-        }
-    default: // case DirectionLeft:
-        switch(snake_state->nextMovement) {
-        case DirectionUp:
-            return DirectionUp;
-        case DirectionDown:
-            return DirectionDown;
-        default:
-            return snake_state->currentMovement;
-        }
+    Direction nextMovement = snake_state->nextMovements[snake_state->nextMovementIndex];
+    if((nextMovement == DirectionNone) ||
+       (snake_state->currentMovement == DirectionUp && nextMovement == DirectionDown) ||
+       (snake_state->currentMovement == DirectionDown && nextMovement == DirectionUp) ||
+       (snake_state->currentMovement == DirectionRight && nextMovement == DirectionLeft) ||
+       (snake_state->currentMovement == DirectionLeft && nextMovement == DirectionRight)) {
+        return snake_state->currentMovement;
     }
+    return nextMovement;
 }
 
 static Point snake_game_get_next_step(SnakeState const* const snake_state) {
     Point next_step = snake_state->points[0];
+    furi_assert(snake_state->currentMovement != DirectionNone);
     switch(snake_state->currentMovement) {
     // +-----x
     // |
@@ -290,6 +270,8 @@ static Point snake_game_get_next_step(SnakeState const* const snake_state) {
         break;
     case DirectionLeft:
         next_step.x--;
+        break;
+    case DirectionNone:
         break;
     }
     return next_step;
@@ -320,11 +302,15 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
     bool can_turn = (snake_state->points[0].x % 2 == 0) && (snake_state->points[0].y % 2 == 0);
     if(can_turn) {
         snake_state->currentMovement = snake_game_get_turn_snake(snake_state);
+        snake_state->nextMovements[snake_state->nextMovementIndex] = DirectionNone;
+        ++snake_state->nextMovementIndex;
+        snake_state->nextMovementIndex %= INPUT_QUEUE_SIZE;
     }
 
     Point next_step = snake_game_get_next_step(snake_state);
 
-    bool crush = snake_game_collision_with_frame(next_step);
+    bool crush = snake_game_collision_with_frame(next_step) ||
+                 snake_game_collision_with_tail(snake_state, next_step);
     if(crush) {
         if(snake_state->state == GameStateLife) {
             snake_state->state = GameStateLastChance;
@@ -342,15 +328,6 @@ static void snake_game_process_game_step(SnakeState* const snake_state) {
         if(snake_state->state == GameStateLastChance) {
             snake_state->state = GameStateLife;
         }
-    }
-
-    crush = snake_game_collision_with_tail(snake_state, next_step);
-    if(crush) {
-        snake_state->state = GameStateGameOver;
-        NotificationApp* notification = furi_record_open("notification");
-        notification_message(notification, &deadAlert);
-        furi_record_close("notification");
-        return;
     }
 
     bool eatFruit = (next_step.x == snake_state->fruit.x) && (next_step.y == snake_state->fruit.y);
@@ -420,18 +397,37 @@ int32_t snake_game_app(void* p) {
             // press events
             if(event.type == EventTypeKey) {
                 if(event.input.type == InputTypePress) {
+                    uint8_t nextIndex = snake_state->nextMovementIndex;
+                    bool canInsert = (snake_state->nextMovements[nextIndex] == DirectionNone);
+                    while(!canInsert) {
+                       ++nextIndex;
+                       nextIndex %= INPUT_QUEUE_SIZE;
+                       if(nextIndex == snake_state->nextMovementIndex) {
+                           // queue full
+                           break;
+                       }
+                       canInsert = (snake_state->nextMovements[nextIndex] == DirectionNone);
+                    }
                     switch(event.input.key) {
                     case InputKeyUp:
-                        snake_state->nextMovement = DirectionUp;
+                        if(canInsert) {
+                            snake_state->nextMovements[nextIndex] = DirectionUp;
+                        }
                         break;
                     case InputKeyDown:
-                        snake_state->nextMovement = DirectionDown;
+                        if(canInsert) {
+                            snake_state->nextMovements[nextIndex] = DirectionDown;
+                        }
                         break;
                     case InputKeyRight:
-                        snake_state->nextMovement = DirectionRight;
+                        if(canInsert) {
+                            snake_state->nextMovements[nextIndex] = DirectionRight;
+                        }
                         break;
                     case InputKeyLeft:
-                        snake_state->nextMovement = DirectionLeft;
+                        if(canInsert) {
+                            snake_state->nextMovements[nextIndex] = DirectionLeft;
+                        }
                         break;
                     case InputKeyOk:
                         if(snake_state->state == GameStateGameOver) {
