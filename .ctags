@@ -1,0 +1,7 @@
+--recurse=yes
+--exclude=.git
+--exclude=.github
+--exclude=*/.obj
+--exclude=*.swp
+--exclude=*.pyc
+--languages=C,C++,Python,Asm,Make
