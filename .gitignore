@@ -40,5 +40,10 @@ dist
 # kde
 .directory
 
-# ctags
+# ctags and cscope
 /tags
+/cscope.files
+/cscope.in.out
+/cscope.out
+/cscope.po.out
+
