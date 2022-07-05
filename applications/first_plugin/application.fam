@@ -1,0 +1,11 @@
+App(
+    appid="first_plugin",
+    name="First Plugin",
+    apptype=FlipperAppType.PLUGIN,
+    entry_point="first_plugin_app",
+    cdefines=["FIRST_PLUGIN"],
+    requires=["gui"],
+    stack_size=1 * 1024,
+    icon="A_Plugins_14",
+    order=30,
+)
