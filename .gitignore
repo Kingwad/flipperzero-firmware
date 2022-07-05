@@ -40,6 +40,14 @@ dist
 # kde
 .directory
 
+# SCons
+.sconsign.dblite
+# SCons build dir
+build/
+
+# Toolchain
+toolchain*/
+
 # ctags and cscope
 /tags
 /cscope.files
