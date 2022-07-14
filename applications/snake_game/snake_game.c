@@ -243,14 +243,9 @@ static bool
 
 static Direction snake_game_get_turn_snake(SnakeState const* const snake_state) {
     Direction nextMovement = snake_state->nextMovements[snake_state->nextMovementIndex];
-    if((nextMovement == DirectionNone) ||
-       (snake_state->currentMovement == DirectionUp && nextMovement == DirectionDown) ||
-       (snake_state->currentMovement == DirectionDown && nextMovement == DirectionUp) ||
-       (snake_state->currentMovement == DirectionRight && nextMovement == DirectionLeft) ||
-       (snake_state->currentMovement == DirectionLeft && nextMovement == DirectionRight)) {
-        return snake_state->currentMovement;
-    }
-    return nextMovement;
+    // Sum of two `Direction` lies between 0 and 6, odd values indicate orthogonality.
+    bool is_orthogonal = nextMovement != DirectionNone && (snake_state->currentMovement + nextMovement) % 2 == 1;
+    return is_orthogonal ? nextMovement : snake_state->currentMovement;
 }
 
 static Point snake_game_get_next_step(SnakeState const* const snake_state) {
