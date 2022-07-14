@@ -31,6 +31,8 @@ typedef enum {
     GameStateGameOver,
 } GameState;
 
+// Note: do not change without purpose. Current values are used in smart
+// orthogonality calculation in `snake_game_get_turn_snake`.
 typedef enum {
     DirectionUp,
     DirectionRight,
