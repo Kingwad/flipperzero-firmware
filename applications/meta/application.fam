@@ -25,6 +25,9 @@ App(
         "subghz",
         "bad_usb",
         "u2f",
+        "clock_app",
+        "spectrum_analyzer_app",
+        "snake_game",
     ],
 )
 
@@ -35,7 +38,6 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "music_player",
-        "snake_game",
         "bt_hid",
     ],
 )
