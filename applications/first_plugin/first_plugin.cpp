@@ -15,7 +15,7 @@ FirstPlugin::FirstPlugin()
 	  m_stateMutex(),
 	  m_viewPort(nullptr),
 	  m_gui(nullptr) {
-	m_eventQueue = osMessageQueueNew(8, sizeof(PluginEvent), nullptr);
+	m_eventQueue = furi_message_queue_alloc(8, sizeof(PluginEvent));
 	PluginState* pluginState = new PluginState();
 	if (!init_mutex(&m_stateMutex, pluginState, sizeof(pluginState))) {
 		FURI_LOG_E("First_plugin", "cannot create mutex\r\n");
@@ -38,7 +38,7 @@ FirstPlugin::~FirstPlugin() {
 	m_gui = nullptr;
 	view_port_free(m_viewPort);
 	m_viewPort = nullptr;
-	osMessageQueueDelete(m_eventQueue);
+	furi_message_queue_free(m_eventQueue);
 	m_eventQueue = nullptr;
 	PluginState* pluginState = static_cast<PluginState*>(acquire_mutex_block(&m_stateMutex));
 	release_mutex(&m_stateMutex, pluginState);
@@ -56,9 +56,9 @@ int32_t FirstPlugin::Run(void* _args) {
 	(void)(_args); //unused
 	for(bool processing = true; processing;) {
 		PluginEvent event;
-		osStatus_t eventStatus = osMessageQueueGet(m_eventQueue, &event, nullptr, 100);
+		FuriStatus eventStatus = furi_message_queue_get(m_eventQueue, &event, 100);
 		PluginState* pluginState = static_cast<PluginState*>(acquire_mutex_block(&m_stateMutex));
-		if (eventStatus == osOK) {
+		if (eventStatus == FuriStatusOk) {
 			if (event.type == EventTypeKey && (event.input.type == InputTypePress || event.input.type == InputTypeRepeat)) {
 				switch (event.input.key) {
 					case InputKeyUp:
@@ -79,7 +79,7 @@ int32_t FirstPlugin::Run(void* _args) {
 						break;
 				}
 			}
-		} else if (eventStatus != osErrorTimeout) {
+		} else if (eventStatus != FuriStatusErrorTimeout) {
 			FURI_LOG_D("First_plugin", "Run: osMessageQueue: unexpected error %d", eventStatus);
 			processing = false;
 		}
@@ -104,12 +104,12 @@ void FirstPlugin::RenderCallback(Canvas* _canvas, void* _stateMutex) {
 }
 
 void FirstPlugin::InputCallback(InputEvent* _event, void* _eventQueue) {
-	osMessageQueueId_t eventQueue = static_cast<osMessageQueueId_t>(_eventQueue);
+	FuriMessageQueue* eventQueue = static_cast<FuriMessageQueue*>(_eventQueue);
 	PluginEvent event;
 	event.type = EventTypeKey;
 	event.input = *_event;
-	osStatus_t status = osMessageQueuePut(eventQueue, &event, 0, osWaitForever);
-	if (!status == osOK) {
+	FuriStatus status = furi_message_queue_put(eventQueue, &event, FuriWaitForever);
+	if (!status == FuriStatusOk) {
 		FURI_LOG_D("First_plugin", "InputCallback bad %d", status);
 	}
 }

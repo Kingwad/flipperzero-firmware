@@ -29,7 +29,7 @@ private:
 	static void InputCallback(InputEvent* _event, void* _eventQueue);
 
 	bool m_initialized;
-	osMessageQueueId_t m_eventQueue;
+	FuriMessageQueue* m_eventQueue;
 	ValueMutex m_stateMutex;
 	ViewPort* m_viewPort;
 	Gui* m_gui;

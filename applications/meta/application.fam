@@ -39,5 +39,6 @@ App(
     provides=[
         "music_player",
         "bt_hid",
+        "first_plugin",
     ],
 )
