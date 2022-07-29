@@ -46,7 +46,10 @@ dist
 build/
 
 # Toolchain
-toolchain*/
+/toolchain
+
+# openocd output file
+openocd.log
 
 # ctags and cscope
 /tags
@@ -54,4 +57,3 @@ toolchain*/
 /cscope.in.out
 /cscope.out
 /cscope.po.out
-
