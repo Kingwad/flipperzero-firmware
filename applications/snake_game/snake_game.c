@@ -279,20 +279,25 @@ static void snake_game_move_snake(SnakeState* const snake_state, Point const nex
     snake_state->points[0] = next_step;
 }
 
-static void snake_game_process_game_step(SnakeState* const snake_state) {
-    if(snake_state->state == GameStateGameOver) {
-        return;
-    }
+static bool snake_game_should_game_step(SnakeState* const snake_state) {
+    bool step = true;
 
-    snake_state->speedTick += 1;
-    snake_state->speedTick %= 4;
-    if(snake_state->speed == SpeedPause) {
-        return;
+    if(snake_state->state == GameStateGameOver) {
+        step = false;
+    } else {
+        snake_state->speedTick += 1;
+        snake_state->speedTick %= 4;
+        if((snake_state->speed == SpeedPause) ||
+            (snake_state->speed == SpeedSlow && snake_state->speedTick != 0) ||
+            (snake_state->speed == SpeedNormal && snake_state->speedTick & 1)) {
+            step = false;
+        }
     }
-    if(snake_state->speed == SpeedSlow && snake_state->speedTick != 0) {
-        return;
-    }
-    if(snake_state->speed == SpeedNormal && snake_state->speedTick & 1) {
+    return step;
+}
+
+static void snake_game_process_game_step(SnakeState* const snake_state) {
+    if(!snake_game_should_game_step(snake_state)) {
         return;
     }
 
