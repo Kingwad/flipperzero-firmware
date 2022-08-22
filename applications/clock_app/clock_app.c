@@ -30,9 +30,10 @@ static void clock_render_callback(Canvas* const canvas, void* ctx) {
     canvas_clear(canvas);
     canvas_set_color(canvas, ColorBlack);
     ClockState* state = (ClockState*)acquire_mutex((ValueMutex*)ctx, 25);
-    char strings[3][20];
-    sprintf(strings[0], "%.4d-%.2d-%.2d", state->datetime.year, state->datetime.month, state->datetime.day);
-    sprintf(strings[1], "%.2d:%.2d:%.2d", state->datetime.hour, state->datetime.minute, state->datetime.second);
+    size_t buff_size = 20;
+    char strings[3][buff_size];
+    snprintf(strings[0], buff_size, "%.4d-%.2d-%.2d", state->datetime.year, state->datetime.month, state->datetime.day);
+    snprintf(strings[1], buff_size, "%.2d:%.2d:%.2d", state->datetime.hour, state->datetime.minute, state->datetime.second);
     release_mutex((ValueMutex*)ctx, state);
     canvas_set_font(canvas, FontBigNumbers);
     canvas_draw_str_aligned(canvas, 64, 8, AlignCenter, AlignCenter, strings[1]);

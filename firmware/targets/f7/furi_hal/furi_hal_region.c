@@ -32,6 +32,16 @@ const FuriHalRegion furi_hal_region_eu_ru = {
 
 const FuriHalRegion furi_hal_region_us_ca_au = {
     .country_code = "US",
+    .bands_count = 1,
+    .bands = {
+        {
+            .start = 0,
+            .end = 1000000000,
+            .power_limit = 12,
+            .duty_cycle = 50,
+        },
+    }};
+    /*
     .bands_count = 3,
     .bands = {
         {
@@ -52,6 +62,7 @@ const FuriHalRegion furi_hal_region_us_ca_au = {
             .power_limit = 12,
             .duty_cycle = 50,
         }}};
+    */
 
 const FuriHalRegion furi_hal_region_jp = {
     .country_code = "JP",
