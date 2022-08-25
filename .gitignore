@@ -57,3 +57,7 @@ openocd.log
 /cscope.in.out
 /cscope.out
 /cscope.po.out
+
+# PVS Studio temporary files
+.PVS-Studio/
+PVS-Studio.log
